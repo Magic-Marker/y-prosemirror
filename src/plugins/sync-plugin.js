@@ -931,11 +931,11 @@ const isObject = (val) => typeof val === 'object' && val !== null
  * @param {any} pattrs
  * @param {any} yattrs
  */
-const equalAttrs = (pattrs, yattrs) => {
-  const keys = Object.keys(pattrs).filter((key) => pattrs[key] !== null)
+export const equalAttrs = (pattrs, yattrs) => {
+  const keys = Object.keys(pattrs).filter((key) => pattrs[key] != null)
   let eq =
     keys.length ===
-    (yattrs == null ? 0 : Object.keys(yattrs).filter((key) => yattrs[key] !== null && !key.startsWith(MarkPrefix)).length)
+    (yattrs == null ? 0 : Object.keys(yattrs).filter((key) => yattrs[key] != null && !key.startsWith(MarkPrefix)).length)
   for (let i = 0; i < keys.length && eq; i++) {
     const key = keys[i]
     const l = pattrs[key]
