@@ -17,6 +17,7 @@ import {
   yUndoPluginKey,
   yXmlFragmentToProsemirrorJSON
 } from '../src/y-prosemirror.js'
+import { equalAttrs } from '../src/plugins/sync-plugin.js'
 import { EditorState, Plugin, TextSelection } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { Schema } from 'prosemirror-model'
@@ -882,3 +883,46 @@ export const testRepeatGenerateProsemirrorChanges300 = tc => {
   checkResult(applyRandomTests(tc, pmChanges, 300, createNewProsemirrorView))
 }
 */
+
+/**
+ * Regression: an attr whose schema default is `undefined` round-trips through
+ * Y.js as a missing key (JSON drops `undefined`). The PM side must treat
+ * `undefined` the same as `null`/missing, otherwise every local change re-emits
+ * the entire format delta and two clients ping-pong forever.
+ *
+ * @param {t.TestCase} _tc
+ */
+export const testEqualAttrsTreatsUndefinedAsMissing = (_tc) => {
+  const pmAttrs = {
+    categories: undefined,
+    emoji: undefined,
+    id: 'cm_1',
+    new: true,
+    sessionId: null,
+    source: null,
+    user: 'user_1',
+    variant: 'comment'
+  }
+  const yjsAttrs = {
+    id: 'cm_1',
+    new: true,
+    sessionId: null,
+    source: null,
+    user: 'user_1',
+    variant: 'comment'
+  }
+  t.assert(equalAttrs(yjsAttrs, pmAttrs))
+  t.assert(equalAttrs(pmAttrs, yjsAttrs))
+}
+
+/**
+ * @param {t.TestCase} _tc
+ */
+export const testEqualAttrsDetectsRealDifferences = (_tc) => {
+  t.assert(!equalAttrs({ a: 1 }, { a: 2 }))
+  t.assert(!equalAttrs({ a: 1 }, { a: 1, b: 2 }))
+  t.assert(equalAttrs({ a: null }, {}))
+  t.assert(equalAttrs({ a: undefined }, {}))
+  t.assert(equalAttrs({}, { a: undefined }))
+  t.assert(equalAttrs({ a: 1, b: undefined }, { a: 1 }))
+}
